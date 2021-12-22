@@ -1,73 +1,171 @@
-import React, { useEffect, useState } from 'react'
-import { getUsers, deleteUsers, editUsers } from '../../Api'
-import { Table } from 'antd'
+import React, { useEffect, useState } from "react";
+import { getUsers, deleteUsers, updateUsers } from "../../Api";
+import { Table } from "antd";
+
 const TableLayout = () => {
-  const [users, setUsers] = useState([])
+  const [users, setUsers] = useState([]);
+  const [data, setData] = useState({
+    id: "",
+    name: "",
+    username: "",
+    email: "",
+    address: { street: "" },
+    company: { name: "" },
+    phone: "",
+    website: "",
+  });
+  const [id, setId] = useState(1);
+
+  console.log(data);
+
+  useEffect(() => {
+    async function getMyUsers() {
+      const res = await getUsers();
+      setUsers(res.data);
+    }
+    getMyUsers();
+  }, []);
+
+  const deleteMyPost = (id) => {
+    deleteUsers(id);
+  };
+
+  const editUsers = (id) => {
+    setId(id);
+    const filterUser = users?.filter((v) => v.id == id);
+    setData({
+      ...data,
+      username: filterUser[0].username,
+      name: filterUser[0].name,
+      email: filterUser[0].email,
+      id: filterUser[0].id,
+      phone: filterUser[0].phone,
+      website: filterUser[0].website,
+      company: { name: filterUser[0].company.name },
+      address: { street: filterUser[0].address.street },
+    });
+  };
+
+  const saveUser = () => {
+    updateUsers(id, data);
+  };
 
   const columns = [
     {
-      title: '#ID',
-      dataIndex: 'id',
+      title: "#ID",
+      dataIndex: "id",
       render: (text, record) => <div>{text}</div>,
       sorter: (a, b) => a.id.length - b.id.length,
     },
     {
-      title: 'Ism',
-      dataIndex: 'username',
+      title: "Ism",
+      dataIndex: "username",
       render: (text, record) => <div>{text}</div>,
       sorter: (a, b) => a.username.length - b.username.length,
     },
     {
-      title: 'Email',
-      dataIndex: 'email',
+      title: "Email",
+      dataIndex: "email",
       render: (text, record) => <div>{text}</div>,
       sorter: (a, b) => a.email.length - b.email.length,
     },
     {
-      title: 'Telefon raqam',
-      dataIndex: 'phone',
+      title: "Telefon raqam",
+      dataIndex: "phone",
       render: (text, record) => <div>{text}</div>,
       sorter: (a, b) => a.phone.length - b.phone.length,
     },
     {
-      title: 'Harakat',
-      render: (text, record) => {
+      title: "Harakat",
+      dataIndex: "id",
+      render: (id, record) => {
         return (
           <div className="flex">
-            <button className="px-3 py-1 bg-yellow-500 text-white hover:shadow-md mr-2 hover:bg-yellow-900 hover:shadow-yellow-900 transition-shadow rounded-lg">
+            <button
+              onClick={() => editUsers(id)}
+              className="px-3 py-1 bg-yellow-500 text-white hover:shadow-md mr-2 hover:bg-yellow-900 hover:shadow-yellow-900 transition-shadow rounded-lg"
+            >
               Edit
             </button>
-            <button className="px-3 py-1 bg-red-500 text-white hover:shadow-md hover:bg-red-900 hover:shadow-red-900 transition-shadow rounded-lg">
+            <button
+              onClick={() => deleteMyPost(id)}
+              className="px-3 py-1 bg-red-500 text-white hover:shadow-md hover:bg-red-900 hover:shadow-red-900 transition-shadow rounded-lg"
+            >
               Delete
             </button>
           </div>
-        )
+        );
       },
     },
-  ]
+  ];
+
+  const array = [
+    {
+      name: "Id",
+      value: data.id,
+      onChange: (e) => setData({ ...data, id: e.target.value }),
+    },
+    {
+      name: "Name",
+      value: data.name,
+      onChange: (e) => setData({ ...data, name: e.target.value }),
+    },
+    {
+      name: "Username",
+      value: data.username,
+      onChange: (e) => setData({ ...data, username: e.target.value }),
+    },
+    {
+      name: "Email",
+      value: data.email,
+      onChange: (e) => setData({ ...data, email: e.target.value }),
+    },
+    {
+      name: "Phone",
+      value: data.phone,
+      onChange: (e) => setData({ ...data, phone: e.target.value }),
+    },
+    {
+      name: "Website",
+      value: data.website,
+      onChange: (e) => setData({ ...data, website: e.target.value }),
+    },
+    {
+      name: "Company",
+      value: data.company.name,
+      onChange: (e) => setData({ ...data, company: { name: e.target.value } }),
+    },
+    {
+      name: "Address",
+      value: data.address.street,
+      onChange: (e) =>
+        setData({ ...data, address: { street: e.target.value } }),
+    },
+  ];
   return (
     <div className="container p-10 mx-auto  ">
       <div className="row">
         <div className="col-md-12">
           <div className="row">
-            <div className="col-md-6 ">
-              <label className="mb-2 mx-0.5 font-bold"> Name </label>
-              <input
-                type="text"
-                className="outline-none border-2 rounded-md px-3 py-1 focus:shadow-xl focus:shadow-green-100 w-full"
-                placeholder="Name"
-              />
-            </div>
-            <div className="col-md-6 ">
-              <label className="mb-2 mx-0.5 font-bold"> Email </label>
-              <input
-                type="email"
-                className="outline-none border-2 rounded-md px-3 py-1 focus:shadow-xl focus:shadow-green-100 w-full"
-                placeholder="Email"
-              />
-            </div>
+            {/* 1 */}
+            {array.map((value, index) => {
+              return (
+                <div key={index} className="col-md-6 my-3">
+                  <label className="mb-2 mx-0.5 font-bold">{value.name}</label>
+                  <input
+                    value={value.value}
+                    onChange={value.onChange}
+                    type="text"
+                    className="outline-none border-2 rounded-md px-3 py-1 focus:shadow-xl focus:shadow-green-100 w-full"
+                    placeholder={value.name}
+                  />
+                </div>
+              );
+            })}
+
             <div className="col-12 flex justify-center items-center">
               <button
+                onClick={saveUser}
                 className="outline-none border-2 rounded-lg px-3 py-1 focus:shadow-xl 
               my-4 bg-lime-300 active:text-lime-100  active:bg-lime-500   focus:shadow-green-100 "
               >
@@ -87,7 +185,7 @@ const TableLayout = () => {
             //   // onShowSizeChange: onShowSizeChange,
             //   itemRender: itemRender,
             // }}
-            style={{ overflowX: 'auto' }}
+            style={{ overflowX: "auto" }}
             columns={columns}
             // bordered
             dataSource={users}
@@ -97,41 +195,7 @@ const TableLayout = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TableLayout
-{
-  /* {loading && (
-        <h1 className="py-5 text-center text-purple-700 font-medium">
-          Loading...
-        </h1>
-      )}
-      {error && <h1>Error: {error}</h1>}
-      {users?.length > 0 ? (
-        <table className="table  w-full border text-center">
-          <thead style={{ background: '#ccc' }}>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone number</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users?.map((v, i) => (
-              <tr key={v.id}>
-                <td className="pt-3">{v.id}</td>
-                <td className="pt-3">{v.username}</td>
-                <td className="pt-3">{v.email}</td>
-                <td className="pt-3">{v.phone.slice(0, 10)}</td>
-                <td className="pt-3">{v.website}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <h1 className="text-red-700 text-center pt-5">No Data !!!</h1>
-      )} */
-}
+export default TableLayout;
