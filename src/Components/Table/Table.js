@@ -6,12 +6,13 @@ const TableLayout = () => {
   const [users, setUsers] = useState([]);
   const [id, setId] = useState(0);
   const [drop, setDrop] = useState(-1);
+  const [search, setSearch] = useState("");
   const [data, setData] = useState({
     id: "",
     name: "",
     username: "",
-    email: "",
     phone: "",
+    email: "",
     website: "",
     address: { street: "" },
     company: { name: "" },
@@ -22,55 +23,57 @@ const TableLayout = () => {
       id: "",
       name: "",
       username: "",
-      email: "",
       phone: "",
+      email: "",
       website: "",
       address: { street: "" },
       company: { name: "" },
     });
   };
 
+  const addPosts = () => {
+    addUsers(data);
+
+    setUsers([...users, data]);
+    clearData();
+  };
+
   useEffect(() => {
-    async function geMyUsers() {
+    async function getMyUser() {
       const res = await getUsers();
       setUsers(res.data);
     }
-    geMyUsers();
+    getMyUser();
   }, []);
 
-  const addMyUsers = () => {
-    addUsers(data);
-    setUsers([...users, data]);
-    clearData();
-    setDrop(-1);
-  };
-
-  const deleteMyUser = (id) => {
+  const deleteMyUsers = (id) => {
     setUsers(users.filter((v) => v.id !== id));
     deleteUsers(id);
     setDrop(-1);
   };
 
-  const editMyUsers = (id) => {
+  const editUsers = (id) => {
     setId(id);
-    const filterUser = users.filter((v) => v.id === id);
+    const filter = users.filter((v) => v.id === id);
     setData({
       ...data,
-      id: filterUser[0].id,
-      name: filterUser[0].name,
-      username: filterUser[0].username,
-      email: filterUser[0].email,
-      phone: filterUser[0].phone,
-      website: filterUser[0].website,
-      address: { street: filterUser[0].address.street },
-      company: { name: filterUser[0].company.name },
+      id: filter[0].id,
+      name: filter[0].name,
+      username: filter[0].username,
+      phone: filter[0].phone,
+      email: filter[0].email,
+      website: filter[0].website,
+      address: { street: filter[0].address.street },
+      company: { name: filter[0].company.name },
     });
+    setDrop(-1);
   };
 
-  const saveMyUsers = () => {
+  const saveUsers = () => {
     updateUsers(id, data);
 
     const clone = [...users];
+
     clone[id - 1].id = data.id;
     clone[id - 1].name = data.name;
     clone[id - 1].username = data.username;
@@ -79,25 +82,38 @@ const TableLayout = () => {
     clone[id - 1].website = data.website;
     clone[id - 1].address.street = data.address.street;
     clone[id - 1].company.name = data.company.name;
+    setUsers(clone);
 
-    setId(0);
     clearData();
-    setDrop(-1);
+  };
+
+  const openDrop = (index) => {
+    if (drop > -1) {
+      setDrop(-1);
+    } else {
+      setDrop(index);
+    }
   };
 
   const up = (index) => {
-    const clone = [...users];
+    let clone = [...users];
     if (index > 0) {
       [clone[index - 1], clone[index]] = [clone[index], clone[index - 1]];
+      setUsers(clone);
+    } else {
+      clone = [...clone.slice(1, clone.length), clone[index]];
       setUsers(clone);
     }
     setDrop(-1);
   };
 
   const down = (index) => {
-    const clone = [...users];
-    if (clone.length - 1 > index) {
+    let clone = [...users];
+    if (index < users.length - 1) {
       [clone[index + 1], clone[index]] = [clone[index], clone[index + 1]];
+      setUsers(clone);
+    } else {
+      clone = [clone[clone.length - 1], ...clone.slice(0, clone.length - 1)];
       setUsers(clone);
     }
     setDrop(-1);
@@ -138,11 +154,11 @@ const TableLayout = () => {
             className="btn-group dropstart"
           >
             <button
+              onClick={() => openDrop(index)}
               type="button"
               className="btn btn-secondary dropdown-toggle"
               data-bs-toggle="dropdown"
               aria-expanded="false"
-              onClick={() => setDrop(index)}
             >
               Action
             </button>
@@ -156,10 +172,10 @@ const TableLayout = () => {
                 drop === index ? "d-block" : "d-none"
               }`}
             >
-              <li className="dropdown-item" onClick={() => editMyUsers(id)}>
+              <li className="dropdown-item" onClick={() => editUsers(id)}>
                 <i className="fas fa-edit text-warning"></i>
               </li>
-              <li className="dropdown-item" onClick={() => deleteMyUser(id)}>
+              <li className="dropdown-item" onClick={() => deleteMyUsers(id)}>
                 <i className="fa fa-times text-danger" aria-hidden="true"></i>
               </li>
               <li className="dropdown-item" onClick={() => up(index)}>
@@ -181,12 +197,17 @@ const TableLayout = () => {
     },
   ];
 
-  const array = [
+  const myData = [
     {
       name: "Id",
       value: data.id,
       onChange: (e) => setData({ ...data, id: e.target.value }),
       type: "number",
+    },
+    {
+      name: "Email",
+      value: data.email,
+      onChange: (e) => setData({ ...data, email: e.target.value }),
     },
     {
       name: "Name",
@@ -199,19 +220,14 @@ const TableLayout = () => {
       onChange: (e) => setData({ ...data, username: e.target.value }),
     },
     {
-      name: "Email",
-      value: data.email,
-      onChange: (e) => setData({ ...data, email: e.target.value }),
+      name: "Website",
+      value: data.website,
+      onChange: (e) => setData({ ...data, website: e.target.value }),
     },
     {
       name: "Phone",
       value: data.phone,
       onChange: (e) => setData({ ...data, phone: e.target.value }),
-    },
-    {
-      name: "Website",
-      value: data.website,
-      onChange: (e) => setData({ ...data, website: e.target.value }),
     },
     {
       name: "Address",
@@ -227,17 +243,19 @@ const TableLayout = () => {
   ];
 
   return (
-    <div className="container p-10 mx-auto  ">
+    <div className="container p-10 mx-auto">
+      <h3 className="fw-bold text-center">Animation Todo Width Axios</h3>
       <div className="row">
         <div className="col-md-12">
           <div className="row">
-            {array?.map((value, index) => {
+            {myData?.map((value) => {
               return (
-                <div key={index} className="col-md-6 my-3">
+                <div key={value?.name} className="col-md-6 my-2">
                   <label className="mb-2 mx-0.5 font-bold">{value.name}</label>
                   <input
                     value={value.value}
                     onChange={value.onChange}
+                    placeholder={value.name}
                     type={value.type ? value.type : "text"}
                     className="outline-none border-2 rounded-md px-3 py-1 focus:shadow-xl focus:shadow-green-100 w-full"
                   />
@@ -248,7 +266,7 @@ const TableLayout = () => {
             <div className="col-12 flex justify-center items-center">
               {id > 0 ? (
                 <button
-                  onClick={saveMyUsers}
+                  onClick={saveUsers}
                   className="outline-none border-2 rounded-lg px-3 py-1 focus:shadow-xl 
                  my-4 bg-lime-300 active:text-lime-100  active:bg-lime-500   focus:shadow-green-100 "
                 >
@@ -256,13 +274,30 @@ const TableLayout = () => {
                 </button>
               ) : (
                 <button
-                  onClick={addMyUsers}
+                  onClick={addPosts}
                   className="outline-none border-2 rounded-lg px-3 py-1 focus:shadow-xl 
                  my-4 bg-lime-300 active:text-lime-100  active:bg-lime-500   focus:shadow-green-100 "
                 >
-                  add
+                  Add
                 </button>
               )}
+            </div>
+
+            <div className="my-3">
+              <h5 className="fw-bold text-center">Filter And Search</h5>
+              <div className="d-flex align-items-center">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="...Search"
+                  className="form-control"
+                  type="text"
+                />
+                <select className="form-select w-50 ms-3">
+                  <option value="">Alphabet</option>
+                  <option value="">Language</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -281,3 +316,10 @@ const TableLayout = () => {
 };
 
 export default TableLayout;
+
+// <div>
+//     <button onClick={() => deleteMyUsers(id)} className="btn btn-danger">
+//       <i className="fa fa-times" aria-hidden="true"></i>
+//     </button>
+//     <button className="btn btn-warning"></button>
+// </div>

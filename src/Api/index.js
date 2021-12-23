@@ -13,7 +13,7 @@ export const addUsers = (data) => {
   axios
     .post("users", data)
     .then((res) => {
-      if (res.status === 200) {
+      if (res === 200) {
         console.log(res);
       }
     })
